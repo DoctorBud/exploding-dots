@@ -57,6 +57,20 @@ class DotsContainer extends Component{
       return Math.round(value / base);
   }
 
+  numToDisplay(){
+      if(this.state.value !== 0 || this.state.index === '0'){
+          return this.state.value;
+      }else {
+          let toCheck = _DotsStore.getNbContainers() - 1;
+          for(let i = parseInt(this.state.index, 10) + 1; i <= toCheck; ++i){
+              if (_DotsStore.getDotsValueByIndex(i) !== 0) {
+                  return this.state.value;
+              }
+          }
+          return '';
+      }
+  }
+
 
   _onChange(){
     this.setState(getDotsStateByIndex(this.state.index));
@@ -73,10 +87,6 @@ class DotsContainer extends Component{
     _DotsStore.removeChangeListener(this._onChange.bind(this));
   }
 
-
-
-
-
   render() {
 
     return (
@@ -85,7 +95,9 @@ class DotsContainer extends Component{
         <span className="nbDots">{this.state.value}</span>
         <button onClick={this.plusOne.bind(this)}>+1</button>
         <button onClick={this.minusOne.bind(this)}>-1</button>
-        <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{this.state.value}</div>
+        <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{
+            this.numToDisplay()
+        }</div>
       </div>);
   }
 }
@@ -102,7 +114,7 @@ class SVGContainer extends React.Component {
       width : 300,
       height : 400,
       base : 2
-    }
+    };
 
     this.dots = [];
   }
@@ -154,7 +166,7 @@ class SVGContainer extends React.Component {
 
       <g transform={position} className="dropZone">
         <rect ref="zone" className="dotBox" />
-        
+
         <rect className="dotBoxTitle" />
         <text x={(this.state.width/2)+9} y="45" className="dotBoxTitleText" textAnchor="middle">{Math.pow(this.state.base,this.props.index)}</text>
 
@@ -252,6 +264,11 @@ class SVGDot extends React.Component {
 
     d3.select("#stage circle").style("display","block");
 
+    var m = d3.mouse(stage);
+    d3.select("#stage circle")
+        .attr("cx", m[0])
+        .attr("cy", m[1]);
+
     this.setState({
       selected: true
     });
@@ -295,10 +312,10 @@ class SVGDot extends React.Component {
 
     //Add the new dots
     var newNbOfDots = Math.pow(_DotsStore.getBase(), diffZone);
-    var pos = d3.mouse(currentZone);
-    DotsActions.addDots(currentZoneIndex, newNbOfDots, pos[0], pos[1], "dotmove");
-
-
+    if(currentZone) {
+        var pos = d3.mouse(currentZone);
+        DotsActions.addDots(currentZoneIndex, newNbOfDots, pos[0], pos[1], "dotmove");
+    }
   }
 
   dragged(event){
@@ -385,6 +402,8 @@ class VisualPanel extends Component{
   constructor(props){
     super();
     this.state = getDotsState();
+    this.mode = props.mode;
+    this.startingValue = props.startingValue;
   }
 
   // Add change listeners to stores
@@ -401,12 +420,27 @@ class VisualPanel extends Component{
     this.setState(getDotsState());
   }
 
+  /*render() {
+      return (
+          <div className="visualPanel">
+              {this.state.dotsCount} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>
+          </div>
+      );
+  }*/
   render() {
-    return (
-      <div className="visualPanel">
-        {this.state.dotsCount} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>
-      </div>
-    );
+    if(this.mode === "display"){
+        return (
+            <div className="visualPanel">
+                <span className='blackText'>The code for&nbsp;</span>{this.state.dotsCount}<span className='blackText'>&nbsp;is</span>
+            </div>
+        );
+    }else if(this.mode === "addition") {
+        return (
+            <div className="visualPanel">
+                {this.startingValue} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>
+            </div>
+        );
+    }
   }
 }
 
@@ -416,10 +450,43 @@ class VisualPanel extends Component{
 class App extends Component {
 
   constructor(props){
-    super(props); 
+    super(props);
 
     this.logo = props.logo;
     this.boum = props.boum;
+    this.mode = props.mode;
+    this.startingValue = props.startingValue;
+    this.base = props.base;
+  }
+
+  componentDidMount() {
+      if(this.base){
+          _DotsStore.setBase(this.base);
+      }
+      if(this.startingValue){
+          var dropzones = d3.selectAll(".dropZone");
+
+
+          for(var i = this.startingValue.length - 1; i>=0; --i){
+              let zone = dropzones._groups[0][i];
+              let boundingZone = zone.getBoundingClientRect();
+              let pos = {x: Math.random() * boundingZone.width, y: Math.random() * boundingZone.height};
+              let reverseIndex = (_DotsStore.getNbContainers() - i - 1);
+              console.log(i, reverseIndex, this.startingValue[i], pos);
+              DotsActions.addDots(reverseIndex, this.startingValue[i], pos[0], pos[1], "dotmove");
+
+          }
+          /*var _this = this;
+          dropzones._groups[0].forEach(function(zone, index){
+              var boundingZone = zone.getBoundingClientRect();
+              console.log(index, _this);
+              if(_this.startingValue[index]){
+                  let pos = {x: Math.random() * boundingZone.width, y: Math.random() * boundingZone.height};
+                  let reverseIndex = (_DotsStore.getNbContainers() - index - 1);
+                  DotsActions.addDots(reverseIndex, _this.startingValue[index], pos[0], pos[1], "dotmove");
+              }
+          });*/
+      }
   }
 
   render() {
@@ -432,7 +499,7 @@ class App extends Component {
           </div>
 
           <div className="App-intro">
-            <VisualPanel />
+            <VisualPanel mode={this.mode} startingValue={this.startingValue}/>
             <div className="dotsContainers">
               <DotsContainer index="4" />
               <DotsContainer index="3" />
@@ -453,6 +520,8 @@ class App extends Component {
       </div>
     );
   }
+
+
 }
 
 export default App;

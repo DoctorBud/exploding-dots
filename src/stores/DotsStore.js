@@ -1,8 +1,6 @@
 import { EventEmitter } from 'events';
 /*import assign from 'object-assign';*/
 import {DOTS} from '../constants/DotsConstants';
-
-
 const CHANGE_EVENT = 'change';
 
 class DotsStore extends EventEmitter {
@@ -23,7 +21,7 @@ class DotsStore extends EventEmitter {
       nbContainers : 5,
       containerWidth : 300,
       containerHeight : 400, 
-      dotsRayon : 25,
+      dotsRayon : 22,
       dotsCount: 0,
       dotsNum: "?",
       unstable: false,
@@ -53,7 +51,6 @@ class DotsStore extends EventEmitter {
           break;
 
         case DOTS.DOT_ADDED:
-          console.log("action.newdot :", action.newdot)
           _this.addDots(action.zoneIndex, action.nbDots, action.newdot);
           break;
 
@@ -106,13 +103,17 @@ class DotsStore extends EventEmitter {
   }
 
   changeBase(){
-    let bases = [2, 3, 4, 5, 10];
+    let bases = [2, 3, 4, 5, 10, 12];
     let next = false;
     for (let base of bases) {
       if(this.state.base < base && !next) next = base;
     }
     if(next === false) next = bases[0];
     this.state.base = next;
+  }
+
+  setBase(base){
+      this.state.base = base;
   }
 
   clearDots(){

@@ -366,11 +366,17 @@ body {
 }
 .dotCircle{
 	fill: #34d293;
+	stroke: #000000;
+	stroke-width: 3;
 }
 
 .visualPanel{
 	color: #28a3ff;
 	font: 700 8em/1em 'Montserrat', sans-serif;
+}
+.visualPanel .blackText{
+	color: #000000;
+	font: 300 1em/1em 'Montserrat', sans-serif;
 }
 .visualPanel .ok{
 	color: #34d293;
