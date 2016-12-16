@@ -10,337 +10,337 @@ import * as d3 from 'd3';
 var _DotsStore = new DotsStore(AppDispatcher, { base : 2 });
 
 var getDotsStateByIndex = (index) => {
-  return {
-    base : _DotsStore.getBase(),
-    value : _DotsStore.getDotsValueByIndex(index),
-    dots : _DotsStore.getDotsValue()
-  }
+    return {
+        base : _DotsStore.getBase(),
+        value : _DotsStore.getDotsValueByIndex(index),
+        dots : _DotsStore.getDotsValue()
+    }
 }
 
 
 var getDotsState = () => {
-  return {
-    base : _DotsStore.getBase(),
-    dots : _DotsStore.getDotsValue(),
-    dotsCount: _DotsStore.getDotsCount(),
-    dotsNum: _DotsStore.getDotsNum()
-  }
+    return {
+        base : _DotsStore.getBase(),
+        dots : _DotsStore.getDotsValue(),
+        dotsCount: _DotsStore.getDotsCount(),
+        dotsNum: _DotsStore.getDotsNum()
+    }
 }
 
 
 
 class DotsContainer extends Component{
-  
-  constructor(props){
-    super();
-    this.state = {
-      base : 2,
-      value : 0,
-      index: props.index
-    }; 
 
-  }
+    constructor(props){
+        super();
+        this.state = {
+            base : 2,
+            value : 0,
+            index: props.index
+        };
 
-  plusOne(){
-    var v = this.state.value+1;
-    DotsActions.dotsChanged(this.state.index, v);
-  }
-
-  minusOne(){
-    if(this.state.value > 0){
-      DotsActions.removeDots(this.state.index);
     }
-  }
+
+    plusOne(){
+        var v = this.state.value+1;
+        DotsActions.dotsChanged(this.state.index, v);
+    }
+
+    minusOne(){
+        if(this.state.value > 0){
+            DotsActions.removeDots(this.state.index);
+        }
+    }
 
 
-  updateBase(value, base){
-      return Math.round(value / base);
-  }
+    updateBase(value, base){
+        return Math.round(value / base);
+    }
 
-  numToDisplay(){
-      if(this.state.value !== 0 || this.state.index === '0'){
-          return this.state.value;
-      }else {
-          let toCheck = _DotsStore.getNbContainers() - 1;
-          for(let i = parseInt(this.state.index, 10) + 1; i <= toCheck; ++i){
-              if (_DotsStore.getDotsValueByIndex(i) !== 0) {
-                  return this.state.value;
-              }
-          }
-          return '';
-      }
-  }
-
-
-  _onChange(){
-    this.setState(getDotsStateByIndex(this.state.index));
-  }
+    numToDisplay(){
+        if(this.state.value !== 0 || this.state.index === '0'){
+            return this.state.value;
+        }else {
+            let toCheck = _DotsStore.getNbContainers() - 1;
+            for(let i = parseInt(this.state.index, 10) + 1; i <= toCheck; ++i){
+                if (_DotsStore.getDotsValueByIndex(i) !== 0) {
+                    return this.state.value;
+                }
+            }
+            return '';
+        }
+    }
 
 
-  // Add change listeners to stores
-  componentDidMount() {
-    _DotsStore.addChangeListener(this._onChange.bind(this));
-  }
+    _onChange(){
+        this.setState(getDotsStateByIndex(this.state.index));
+    }
 
-  // Remove change listeners from stores
-  componentWillUnmount() {
-    _DotsStore.removeChangeListener(this._onChange.bind(this));
-  }
 
-  render() {
+    // Add change listeners to stores
+    componentDidMount() {
+        _DotsStore.addChangeListener(this._onChange.bind(this));
+    }
 
-    return (
-      <div className="dotsContainer">
-        <div className="title">x<sup>{this.state.index}</sup></div>
-        <span className="nbDots">{this.state.value}</span>
-        <button onClick={this.plusOne.bind(this)}>+1</button>
-        <button onClick={this.minusOne.bind(this)}>-1</button>
-        <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{
-            this.numToDisplay()
-        }</div>
-      </div>);
-  }
+    // Remove change listeners from stores
+    componentWillUnmount() {
+        _DotsStore.removeChangeListener(this._onChange.bind(this));
+    }
+
+    render() {
+
+        return (
+            <div className="dotsContainer">
+                <div className="title">x<sup>{this.state.index}</sup></div>
+                <span className="nbDots">{this.state.value}</span>
+                <button onClick={this.plusOne.bind(this)}>+1</button>
+                <button onClick={this.minusOne.bind(this)}>-1</button>
+                <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{
+                    this.numToDisplay()
+                }</div>
+            </div>);
+    }
 }
 
 
 
 class SVGContainer extends React.Component {
-  
-
-  constructor(props){
-    super();
-
-    this.state = {
-      width : 300,
-      height : 400,
-      base : 2
-    };
-
-    this.dots = [];
-  }
-
-  // Add change listeners to stores
-  componentDidMount() {
-     _DotsStore.addChangeListener(this._onChange.bind(this));
-    d3.select(this.refs.zone).on("click", this.addDot.bind(this) );
-  }
-
-  _onChange(){
-    this.setState(getDotsStateByIndex(this.props.index));
-  }
-
-  // Remove change listeners from stores
-  componentWillUnmount() {
-    d3.select(this.refs.zone).on("click", null );
-    _DotsStore.removeChangeListener(this._onChange.bind(this));
-  }
-
-  addDot(event){
-    var v = this.dots.length+1;
-
-    var pos = d3.mouse(this.refs.zone);
-
-    DotsActions.dotsChanged(this.props.index, v, pos[0], pos[1]);
-  }
 
 
-  
-  render() {
+    constructor(props){
+        super();
 
-    var statedots = _DotsStore.getDotsValue()[this.props.index];
+        this.state = {
+            width : 300,
+            height : 400,
+            base : 2
+        };
 
-    var zoneIndex = this.props.index;
-    var _this = this;
+        this.dots = [];
+    }
 
-    this.dots = [];
-    statedots.forEach(function(dot, index){
-        var key = zoneIndex + "." + dot.x + "." + dot.y;
-        if(_this.dots.length <= _DotsStore.getMaxViewableDots()) _this.dots.push(<SVGDot key={key} index={index} x={dot.x} y={dot.y} style={dot.style} positive={true} zoneIndex={zoneIndex} />);
-    });
+    // Add change listeners to stores
+    componentDidMount() {
+        _DotsStore.addChangeListener(this._onChange.bind(this));
+        d3.select(this.refs.zone).on("click", this.addDot.bind(this) );
+    }
 
-    var reverseIndex = (_DotsStore.getNbContainers() - this.props.index - 1);
-    var style = (this.state.base <= this.dots.length) ? "dotGroup shaking" : "dotGroup";
-    var position = `translate(${reverseIndex*(this.state.width+20)},0)`;
+    _onChange(){
+        this.setState(getDotsStateByIndex(this.props.index));
+    }
 
-    return (
+    // Remove change listeners from stores
+    componentWillUnmount() {
+        d3.select(this.refs.zone).on("click", null );
+        _DotsStore.removeChangeListener(this._onChange.bind(this));
+    }
 
-      <g transform={position} className="dropZone">
-        <rect ref="zone" className="dotBox" />
+    addDot(event){
+        var v = this.dots.length+1;
 
-        <rect className="dotBoxTitle" />
-        <text x={(this.state.width/2)+9} y="45" className="dotBoxTitleText" textAnchor="middle">{Math.pow(this.state.base,this.props.index)}</text>
+        var pos = d3.mouse(this.refs.zone);
 
-        <ReactCSSTransitionGroup transitionName="svgDot" component="g" className={style} 
-          transitionEnterTimeout={300} transitionLeaveTimeout={500}>
-          {this.dots}
-        </ReactCSSTransitionGroup>
-      </g>
-        
-    );
-  }
+        DotsActions.dotsChanged(this.props.index, v, pos[0], pos[1]);
+    }
+
+
+
+    render() {
+
+        var statedots = _DotsStore.getDotsValue()[this.props.index];
+
+        var zoneIndex = this.props.index;
+        var _this = this;
+
+        this.dots = [];
+        statedots.forEach(function(dot, index){
+            var key = zoneIndex + "." + dot.x + "." + dot.y;
+            if(_this.dots.length <= _DotsStore.getMaxViewableDots()) _this.dots.push(<SVGDot key={key} index={index} x={dot.x} y={dot.y} style={dot.style} positive={true} zoneIndex={zoneIndex} />);
+        });
+
+        var reverseIndex = (_DotsStore.getNbContainers() - this.props.index - 1);
+        var style = (this.state.base <= this.dots.length) ? "dotGroup shaking" : "dotGroup";
+        var position = `translate(${reverseIndex*(this.state.width+20)},0)`;
+
+        return (
+
+            <g transform={position} className="dropZone">
+                <rect ref="zone" className="dotBox" />
+
+                <rect className="dotBoxTitle" />
+                <text x={(this.state.width/2)+9} y="45" className="dotBoxTitleText" textAnchor="middle">{Math.pow(this.state.base,this.props.index)}</text>
+
+                <ReactCSSTransitionGroup transitionName="svgDot" component="g" className={style}
+                                         transitionEnterTimeout={300} transitionLeaveTimeout={500}>
+                    {this.dots}
+                </ReactCSSTransitionGroup>
+            </g>
+
+        );
+    }
 }
 
 
 
 class SVGFullSizeContainer extends React.Component {
-  
 
-  constructor(props){
-    super();
 
-    this.state = {
-      dots : [0, 0, 0, 0, 0]
+    constructor(props){
+        super();
+
+        this.state = {
+            dots : [0, 0, 0, 0, 0]
+        }
     }
-  }
 
-  // Add change listeners to stores
-  componentDidMount() {
-    _DotsStore.addChangeListener(this._onChange.bind(this));
-    d3.select("#stage circle").style("display","none");
-  }
+    // Add change listeners to stores
+    componentDidMount() {
+        _DotsStore.addChangeListener(this._onChange.bind(this));
+        d3.select("#stage circle").style("display","none");
+    }
 
-  // Remove change listeners from stores
-  componentWillUnmount() {
-    _DotsStore.removeChangeListener(this._onChange.bind(this));
-  }
+    // Remove change listeners from stores
+    componentWillUnmount() {
+        _DotsStore.removeChangeListener(this._onChange.bind(this));
+    }
 
-  _onChange(){
-    this.setState(getDotsState());
-  }
-  
-  render() {
+    _onChange(){
+        this.setState(getDotsState());
+    }
 
-    return (
-      <div className="SVGContainer">
-        <div className="scrollContainer">
+    render() {
 
-          <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 400">
-            <g>
-              <SVGContainer className="SVGContainer" index={4} dots={this.state.dots} />
-              <SVGContainer className="SVGContainer" index={3} dots={this.state.dots} />
-              <SVGContainer className="SVGContainer" index={2} dots={this.state.dots} />
-              <SVGContainer className="SVGContainer" index={1} dots={this.state.dots} />
-              <SVGContainer className="SVGContainer" index={0} dots={this.state.dots} />
-            </g>
-            <g id="stage">
-              <SVGDot key={0} x={0} y={0} positive={true} zoneIndex={0} className="draggedDot" />
-            </g>
-          </svg>
+        return (
+            <div className="SVGContainer">
+                <div className="scrollContainer">
 
-        </div>
-      </div>
-    );
-  }
+                    <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1600 400">
+                        <g>
+                            <SVGContainer className="SVGContainer" index={4} dots={this.state.dots} />
+                            <SVGContainer className="SVGContainer" index={3} dots={this.state.dots} />
+                            <SVGContainer className="SVGContainer" index={2} dots={this.state.dots} />
+                            <SVGContainer className="SVGContainer" index={1} dots={this.state.dots} />
+                            <SVGContainer className="SVGContainer" index={0} dots={this.state.dots} />
+                        </g>
+                        <g id="stage">
+                            <SVGDot key={0} x={0} y={0} positive={true} zoneIndex={0} className="draggedDot" />
+                        </g>
+                    </svg>
+
+                </div>
+            </div>
+        );
+    }
 }
 
 class SVGDot extends React.Component {
 
-  constructor(props){
-    super();
+    constructor(props){
+        super();
 
-    this.state = {
-      zoneIndex : props.zoneIndex,
-      selected:false
-    };
-  }
-
-  componentDidMount() {
-    d3.select(this.refs.dot).call(d3.drag()
-      .on("start", this.dragstarted.bind(this))
-      .on("drag", this.dragged.bind(this))
-      .on("end", this.dragended.bind(this)));
-  }
-
-  componentWillUnmount() {
-    d3.drag()
-    .subject(this.refs.dot)
-    .on("start", null)
-    .on("drag", null)
-    .on("end", null);
-  }
-
-
-  dragstarted(event){
-
-    d3.select("#stage circle").style("display","block");
-
-    var m = d3.mouse(stage);
-    d3.select("#stage circle")
-        .attr("cx", m[0])
-        .attr("cy", m[1]);
-
-    this.setState({
-      selected: true
-    });
-  }
-
-  dragended(event){
-
-    this.setState({
-      selected: false
-    });
-
-    d3.select("#stage circle").style("display","none");
-
-
-    //find new zone for dots
-    var dropzones = d3.selectAll(".dropZone");
-    var currentZoneIndex = -1;
-    var currentZone;
-    dropzones._groups[0].forEach(function(zone, index){
-      var posInZone = d3.mouse(zone);
-      var boundingZone = zone.getBoundingClientRect();
-      if(posInZone[0] > 0 && posInZone[1] > 0 && posInZone[1] < boundingZone.bottom){
-        currentZoneIndex = dropzones._groups[0].length - index - 1;
-        currentZone = zone;
-      }      
-    });
-
-    var diffZone = this.state.zoneIndex - currentZoneIndex;
-    var dotsToRemove = 1;
-    if(diffZone < 0){
-      dotsToRemove = Math.pow(_DotsStore.getBase(), diffZone*-1);
+        this.state = {
+            zoneIndex : props.zoneIndex,
+            selected:false
+        };
     }
 
-    //Remove the dots
-    var finalNbOfDots = _DotsStore.getDotsValueByIndex(this.state.zoneIndex) - dotsToRemove;
-    if(finalNbOfDots < 0){
-      alert("Pas assez de points disponibles pour cette opération");
-      return false;
+    componentDidMount() {
+        d3.select(this.refs.dot).call(d3.drag()
+            .on("start", this.dragstarted.bind(this))
+            .on("drag", this.dragged.bind(this))
+            .on("end", this.dragended.bind(this)));
     }
-    DotsActions.removeDots(this.state.zoneIndex, dotsToRemove, this.props.index, "no-animation");
 
-    //Add the new dots
-    var newNbOfDots = Math.pow(_DotsStore.getBase(), diffZone);
-    if(currentZone) {
-        var pos = d3.mouse(currentZone);
-        DotsActions.addDots(currentZoneIndex, newNbOfDots, pos[0], pos[1], "dotmove");
+    componentWillUnmount() {
+        d3.drag()
+            .subject(this.refs.dot)
+            .on("start", null)
+            .on("drag", null)
+            .on("end", null);
     }
-  }
-
-  dragged(event){
-    //lint fails because stage is not declared
-    var m = d3.mouse(stage);
-
-    d3.select("#stage circle")
-      .attr("cx", m[0])
-      .attr("cy", m[1]);
-  }
 
 
+    dragstarted(event){
 
-  render(){
+        d3.select("#stage circle").style("display","block");
 
-    var style = (this.state.selected ? "dotCircle dotCircleSelected" : "dotCircle");
-    if(this.props.style) style += " " + this.props.style;
+        var m = d3.mouse(stage);
+        d3.select("#stage circle")
+            .attr("cx", m[0])
+            .attr("cy", m[1]);
 
-    var x = Math.min(Math.max(this.props.x, _DotsStore.getRightLimit()), _DotsStore.getLeftLimit());
-    var y = Math.min(Math.max(this.props.y, _DotsStore.getTopLimit()), _DotsStore.getBottomLimit());
+        this.setState({
+            selected: true
+        });
+    }
 
-    let circle = (<circle ref="dot" cx={x} cy={y} r={_DotsStore.getDotsRayon()} className={style} />);
-    
-    return circle;
-  }
+    dragended(event){
+
+        this.setState({
+            selected: false
+        });
+
+        d3.select("#stage circle").style("display","none");
+
+
+        //find new zone for dots
+        var dropzones = d3.selectAll(".dropZone");
+        var currentZoneIndex = -1;
+        var currentZone;
+        dropzones._groups[0].forEach(function(zone, index){
+            var posInZone = d3.mouse(zone);
+            var boundingZone = zone.getBoundingClientRect();
+            if(posInZone[0] > 0 && posInZone[1] > 0 && posInZone[1] < boundingZone.bottom){
+                currentZoneIndex = dropzones._groups[0].length - index - 1;
+                currentZone = zone;
+            }
+        });
+
+        var diffZone = this.state.zoneIndex - currentZoneIndex;
+        var dotsToRemove = 1;
+        if(diffZone < 0){
+            dotsToRemove = Math.pow(_DotsStore.getBase(), diffZone*-1);
+        }
+
+        //Remove the dots
+        var finalNbOfDots = _DotsStore.getDotsValueByIndex(this.state.zoneIndex) - dotsToRemove;
+        if(finalNbOfDots < 0){
+            alert("Pas assez de points disponibles pour cette opération");
+            return false;
+        }
+        DotsActions.removeDots(this.state.zoneIndex, dotsToRemove, this.props.index, "no-animation");
+
+        //Add the new dots
+        var newNbOfDots = Math.pow(_DotsStore.getBase(), diffZone);
+        if(currentZone) {
+            var pos = d3.mouse(currentZone);
+            DotsActions.addDots(currentZoneIndex, newNbOfDots, pos[0], pos[1], "dotmove");
+        }
+    }
+
+    dragged(event){
+        //lint fails because stage is not declared
+        var m = d3.mouse(stage);
+
+        d3.select("#stage circle")
+            .attr("cx", m[0])
+            .attr("cy", m[1]);
+    }
+
+
+
+    render(){
+
+        var style = (this.state.selected ? "dotCircle dotCircleSelected" : "dotCircle");
+        if(this.props.style) style += " " + this.props.style;
+
+        var x = Math.min(Math.max(this.props.x, _DotsStore.getRightLimit()), _DotsStore.getLeftLimit());
+        var y = Math.min(Math.max(this.props.y, _DotsStore.getTopLimit()), _DotsStore.getBottomLimit());
+
+        let circle = (<circle ref="dot" cx={x} cy={y} r={_DotsStore.getDotsRayon()} className={style} />);
+
+        return circle;
+    }
 }
 
 
@@ -349,99 +349,130 @@ class SVGDot extends React.Component {
 class ConfigPanel extends Component{
 
 
-  constructor(props){
-    super();
-    this.state = {base : 2 };
-  }
+    constructor(props){
+        super();
+        this.state = {base : 2 };
+    }
 
-  changeBase(event){
-    DotsActions.changeBase();
-  }
+    changeBase(event){
+        DotsActions.changeBase();
+    }
 
-  reset(event){
-    DotsActions.clearDots();
-  }
+    reset(event){
+        DotsActions.clearDots();
+    }
 
-  stabilize(event){
-    DotsActions.stabilize();
-  }
+    stabilize(event){
+        DotsActions.stabilize();
+    }
 
-  oneStepStabilize(event){
-    DotsActions.oneStepStabilize();
-  }
+    oneStepStabilize(event){
+        DotsActions.oneStepStabilize();
+    }
 
-  // Add change listeners to stores
-  componentDidMount() {
-    _DotsStore.addChangeListener(this._onChange.bind(this));
-  }
+    // Add change listeners to stores
+    componentDidMount() {
+        _DotsStore.addChangeListener(this._onChange.bind(this));
+    }
 
-  // Remove change listeners from stores
-  componentWillUnmount() {
-    _DotsStore.removeChangeListener(this._onChange.bind(this));
-  }
+    // Remove change listeners from stores
+    componentWillUnmount() {
+        _DotsStore.removeChangeListener(this._onChange.bind(this));
+    }
 
-  _onChange(){
-    this.setState({base : _DotsStore.getBase()});
-  }
+    _onChange(){
+        this.setState({base : _DotsStore.getBase()});
+    }
 
-  render() {
-    return (
-      <div className="configPanel">
-        <button onClick={this.changeBase} className="base">1 <i className="fa fa-long-arrow-left"></i> {this.state.base}</button>
-        <button onClick={this.stabilize} className="play"><i className="fa fa-play"></i></button>
-        <button onClick={this.oneStepStabilize} className="explode"><i className="fa fa-magic"></i></button>
-        <button onClick={this.reset} className="reset"><i className="fa fa-refresh"></i></button>
-      </div>
-    );
-  }
+    render() {
+        return (
+            <div className="configPanel">
+                <button onClick={this.changeBase} className="base">1 <i className="fa fa-long-arrow-left"></i> {this.state.base}</button>
+                <button onClick={this.stabilize} className="play"><i className="fa fa-play"></i></button>
+                <button onClick={this.oneStepStabilize} className="explode"><i className="fa fa-magic"></i></button>
+                <button onClick={this.reset} className="reset"><i className="fa fa-refresh"></i></button>
+            </div>
+        );
+    }
 }
 
 class VisualPanel extends Component{
 
-
-  constructor(props){
-    super();
-    this.state = getDotsState();
-    this.mode = props.mode;
-    this.startingValue = props.startingValue;
-  }
-
-  // Add change listeners to stores
-  componentDidMount() {
-    _DotsStore.addChangeListener(this._onChange.bind(this));
-  }
-
-  // Remove change listeners from stores
-  componentWillUnmount() {
-    _DotsStore.removeChangeListener(this._onChange.bind(this));
-  }
-
-  _onChange(){
-    this.setState(getDotsState());
-  }
-
-  /*render() {
-      return (
-          <div className="visualPanel">
-              {this.state.dotsCount} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>
-          </div>
-      );
-  }*/
-  render() {
-    if(this.mode === "display"){
-        return (
-            <div className="visualPanel">
-                <span className='blackText'>The code for&nbsp;</span>{this.state.dotsCount}<span className='blackText'>&nbsp;is</span>
-            </div>
-        );
-    }else if(this.mode === "addition") {
-        return (
-            <div className="visualPanel">
-                {this.startingValue} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>
-            </div>
-        );
+    constructor(props){
+        super();
+        this.state = getDotsState();
+        this.mode = props.mode;
+        this.startingValue = props.startingValue;
+        this.inputValue = undefined;
     }
-  }
+
+    // Add change listeners to stores
+    componentDidMount() {
+        _DotsStore.addChangeListener(this._onChange.bind(this));
+    }
+
+    // Remove change listeners from stores
+    componentWillUnmount() {
+        _DotsStore.removeChangeListener(this._onChange.bind(this));
+    }
+
+    _onChange(){
+        this.setState(getDotsState());
+    }
+
+    validateNumber(evt) {
+        var theEvent = evt || window.event;
+        let target = theEvent.target;
+        let key = theEvent.target.value;
+
+        if (key.length > target.maxLength){
+            target.value = target.value.slice(0, target.maxLength);
+        }
+        if(theEvent.keyCode === 37 || theEvent.keyCode === 39 || theEvent.keyCode === 8 || theEvent.keyCode === 46) { // Left / Up / Right / Down Arrow, Backspace, Delete keys
+            return;
+        }
+        key = String.fromCharCode(evt.keyCode);
+        var regex = /[0-9]|\./;
+        if(!regex.test(key) ) {
+            if(theEvent.preventDefault) theEvent.preventDefault();
+        }
+    }
+
+    processAddition(evt){
+        let inputValue = evt.target.value.toString(10).split("").map(function(t){return parseInt(t)});
+        if(inputValue.length > 0){
+            var nbContainer = _DotsStore.getNbContainers();
+            for(var i = nbContainer; i >= 0; --i){
+                if(inputValue[i]){
+                    DotsActions.addDots(i, inputValue[i], undefined, undefined, "dotmove");
+                }
+            }
+        }
+    }
+
+    /*render() {
+     return (
+     <div className="visualPanel">
+     {this.state.dotsCount} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>
+     </div>
+     );
+     }*/
+    render() {
+        if(this.mode === "display"){
+            return (
+                <div className="visualPanel">
+                    <span className='blackText'>The code for&nbsp;</span>{this.state.dotsCount}<span className='blackText'>&nbsp;is</span>
+                </div>
+            );
+        }else if(this.mode === "addition") {
+            return (
+                <div className="calculus">
+                    {/*{this.startingValue} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>*/}
+                    {this.startingValue}&nbsp;<i className="fa fa-plus"></i> <input type="text" name="fname" className='inputNumber' maxLength="5" onKeyDown={this.validateNumber} onBlur={this.processAddition}/>
+                </div>
+            );
+        }
+    }
 }
 
 
@@ -449,77 +480,61 @@ class VisualPanel extends Component{
 
 class App extends Component {
 
-  constructor(props){
-    super(props);
+    constructor(props){
+        super(props);
 
-    this.logo = props.logo;
-    this.boum = props.boum;
-    this.mode = props.mode;
-    this.startingValue = props.startingValue;
-    this.base = props.base;
-  }
+        this.logo = props.logo;
+        this.boum = props.boum;
+        this.mode = props.mode;
+        this.startingValue = props.startingValue;
+        this.base = props.base;
+    }
 
-  componentDidMount() {
-      if(this.base){
-          _DotsStore.setBase(this.base);
-      }
-      if(this.startingValue){
-          var dropzones = d3.selectAll(".dropZone");
+    componentDidMount() {
+        if(this.base){
+            _DotsStore.setBase(this.base);
+        }
+        if(this.startingValue){
+            var nbContainer = _DotsStore.getNbContainers();
+            for(var i = nbContainer; i >= 0; --i){
+                if(this.startingValue[i]){
+                    DotsActions.addDots(i, this.startingValue[i], undefined, undefined, "dotmove");
+                }
+            }
+        }
+    }
 
+    render() {
+        return (
+            <div id="jeu" className="scolab">
+                <div className="App">
+                    <div className="App-header">
+                        <h2><img src={this.boum} alt="Boum, Le Jeu Mathématique" /></h2>
+                        <ConfigPanel />
+                    </div>
 
-          for(var i = this.startingValue.length - 1; i>=0; --i){
-              let zone = dropzones._groups[0][i];
-              let boundingZone = zone.getBoundingClientRect();
-              let pos = {x: Math.random() * boundingZone.width, y: Math.random() * boundingZone.height};
-              let reverseIndex = (_DotsStore.getNbContainers() - i - 1);
-              console.log(i, reverseIndex, this.startingValue[i], pos);
-              DotsActions.addDots(reverseIndex, this.startingValue[i], pos[0], pos[1], "dotmove");
+                    <div className="App-intro">
+                        <VisualPanel mode={this.mode} startingValue={this.startingValue}/>
+                        <div className="dotsContainers">
+                            <DotsContainer index="4" />
+                            <DotsContainer index="3" />
+                            <DotsContainer index="2" />
+                            <DotsContainer index="1" />
+                            <DotsContainer index="0" />
+                        </div>
 
-          }
-          /*var _this = this;
-          dropzones._groups[0].forEach(function(zone, index){
-              var boundingZone = zone.getBoundingClientRect();
-              console.log(index, _this);
-              if(_this.startingValue[index]){
-                  let pos = {x: Math.random() * boundingZone.width, y: Math.random() * boundingZone.height};
-                  let reverseIndex = (_DotsStore.getNbContainers() - index - 1);
-                  DotsActions.addDots(reverseIndex, _this.startingValue[index], pos[0], pos[1], "dotmove");
-              }
-          });*/
-      }
-  }
-
-  render() {
-    return (
-      <div id="jeu" className="scolab">
-        <div className="App">
-          <div className="App-header">
-          <h2><img src={this.boum} alt="Boum, Le Jeu Mathématique" /></h2>
-            <ConfigPanel />
-          </div>
-
-          <div className="App-intro">
-            <VisualPanel mode={this.mode} startingValue={this.startingValue}/>
-            <div className="dotsContainers">
-              <DotsContainer index="4" />
-              <DotsContainer index="3" />
-              <DotsContainer index="2" />
-              <DotsContainer index="1" />
-              <DotsContainer index="0" />
+                        <div className="dotsFullSizeContainers">
+                            <SVGFullSizeContainer className="SVGFullSizeContainer" />
+                        </div>
+                    </div>
+                </div>
+                <div className="credits">
+                    <p><a href="http://www.scolab.com" target="_blank">Un projet de <img src={this.logo} width="65" alt="Une présentation de Scolab Inc. - scolab.com" /></a></p>
+                    <p className="license"><small>Cette œuvre est mise à disposition selon les termes de la <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Licence Creative Commons Attribution 4.0 International</a>.</small></p>
+                </div>
             </div>
-
-            <div className="dotsFullSizeContainers">
-              <SVGFullSizeContainer className="SVGFullSizeContainer" />
-            </div>
-          </div>
-        </div>
-        <div className="credits">
-          <p><a href="http://www.scolab.com" target="_blank">Un projet de <img src={this.logo} width="65" alt="Une présentation de Scolab Inc. - scolab.com" /></a></p>
-          <p className="license"><small>Cette œuvre est mise à disposition selon les termes de la <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank">Licence Creative Commons Attribution 4.0 International</a>.</small></p>
-        </div>
-      </div>
-    );
-  }
+        );
+    }
 
 
 }

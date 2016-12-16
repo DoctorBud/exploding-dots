@@ -13,7 +13,6 @@ export default class DotsActions {
 
 
     static addDots(_zoneIndex, _nbDots, _x, _y, _style){
-
         var obj = {
             actionType : DOTS.DOT_ADDED,
             nbDots : _nbDots,
