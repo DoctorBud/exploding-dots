@@ -15,7 +15,7 @@ var getDotsStateByIndex = (index) => {
         value : _DotsStore.getDotsValueByIndex(index),
         dots : _DotsStore.getDotsValue()
     }
-}
+};
 
 
 var getDotsState = () => {
@@ -25,8 +25,15 @@ var getDotsState = () => {
         dotsCount: _DotsStore.getDotsCount(),
         dotsNum: _DotsStore.getDotsNum()
     }
-}
+};
 
+var getMinusDotsStateByIndex = (index) => {
+    return {
+        base : _DotsStore.getBase(),
+        value : _DotsStore.getMinusDotsValueByIndex(index),
+        dots : _DotsStore.getMinusDotsValue()
+    }
+};
 
 
 class DotsContainer extends Component{
@@ -58,11 +65,27 @@ class DotsContainer extends Component{
     }
 
     numToDisplay(){
+        // Don't display leading zeroes
         if(this.state.value !== 0 || this.state.index === '0'){
-            return this.state.value;
+            if(_DotsStore.getBase() !== 12) {
+                return this.state.value;
+            }else{
+                if(this.state.value > (this.state.base-1)){
+                    return this.state.value;
+                }else{
+                    switch (this.state.value){
+                        case 10:
+                            return 'A';
+                        case 11:
+                            return 'B';
+                        default:
+                            return this.state.value;
+                    }
+                }
+            }
         }else {
-            let toCheck = _DotsStore.getNbContainers() - 1;
-            for(let i = parseInt(this.state.index, 10) + 1; i <= toCheck; ++i){
+            let nbContainers = _DotsStore.getNbContainers() - 1;
+            for(let i = parseInt(this.state.index, 10) + 1; i <= nbContainers; ++i){
                 if (_DotsStore.getDotsValueByIndex(i) !== 0) {
                     return this.state.value;
                 }
@@ -70,7 +93,6 @@ class DotsContainer extends Component{
             return '';
         }
     }
-
 
     _onChange(){
         this.setState(getDotsStateByIndex(this.state.index));
@@ -102,6 +124,75 @@ class DotsContainer extends Component{
     }
 }
 
+
+class MinusDotsContainer extends Component{
+
+    constructor(props){
+        super();
+        this.state = {
+            base : 2,
+            value : 0,
+            index: props.index
+        };
+
+    }
+
+    numToDisplay(){
+        // Don't display leading zeroes
+        if(this.state.value !== 0 || this.state.index === '0'){
+            if(_DotsStore.getBase() !== 12) {
+                return 5;
+                return this.state.value;
+            }else{
+                if(this.state.value > (this.state.base-1)){
+                    return this.state.value;
+                }else{
+                    switch (this.state.value){
+                        case 10:
+                            return 'A';
+                        case 11:
+                            return 'B';
+                        default:
+                            return this.state.value;
+                    }
+                }
+            }
+        }else {
+            let nbContainers = _DotsStore.getNbContainers() - 1;
+            for(let i = parseInt(this.state.index, 10) + 1; i <= nbContainers; ++i){
+                if (_DotsStore.getMinusDotsValueByIndex(i) !== 0) {
+                    return this.state.value;
+                }
+            }
+            return '';
+        }
+    }
+
+    /*_onChange(){
+        this.setState(getMinusDotsStateByIndex(this.state.index));
+    }
+
+
+    // Add change listeners to stores
+    componentDidMount() {
+        _DotsStore.addChangeListener(this._onChange.bind(this));
+    }
+
+    // Remove change listeners from stores
+    componentWillUnmount() {
+        _DotsStore.removeChangeListener(this._onChange.bind(this));
+    }*/
+
+    render() {
+        return (
+            <div className="dotsContainer">
+                <span className="nbDots">{this.state.value}</span>
+                 <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{
+                    this.numToDisplay()
+                }</div>
+            </div>);
+    }
+}
 
 
 class SVGContainer extends React.Component {
@@ -403,7 +494,6 @@ class VisualPanel extends Component{
         this.state = getDotsState();
         this.mode = props.mode;
         this.startingValue = props.startingValue;
-        this.inputValue = undefined;
     }
 
     // Add change listeners to stores
@@ -439,12 +529,45 @@ class VisualPanel extends Component{
     }
 
     processAddition(evt){
-        let inputValue = evt.target.value.toString(10).split("").map(function(t){return parseInt(t)});
+        let inputValue = evt.target.value.toString().split("").map(function(t){return parseInt(t, _DotsStore.getBase())});
         if(inputValue.length > 0){
             var nbContainer = _DotsStore.getNbContainers();
-            for(var i = nbContainer; i >= 0; --i){
+            while(inputValue.length < nbContainer){
+                inputValue.unshift(0);
+            }
+            for(var i = nbContainer - 1; i >= 0; --i){
+                var reverseIndex = (_DotsStore.getNbContainers() - i - 1);
                 if(inputValue[i]){
-                    DotsActions.addDots(i, inputValue[i], undefined, undefined, "dotmove");
+                    DotsActions.addDots(reverseIndex, inputValue[i], undefined, undefined, "dotmove");
+                }
+            }
+        }
+    }
+
+    processMultiply(evt){
+        let inputValue = parseInt(evt.target.value, _DotsStore.getBase());
+        if(inputValue > 0){
+            let nbContainer = _DotsStore.getNbContainers();
+            for(let i = nbContainer - 1; i >= 0; --i){
+                let currentDotsCount = _DotsStore.getDotsValueByIndex(i);
+                for(let j = 0; j < inputValue - 1; ++j) {
+                    DotsActions.addDots(i, currentDotsCount, undefined, undefined, "dotmove");
+                }
+            }
+        }
+    }
+
+    processSubtract(evt){
+        let inputValue = evt.target.value.toString().split("").map(function(t){return parseInt(t, _DotsStore.getBase())});
+        if(inputValue.length > 0){
+            var nbContainer = _DotsStore.getNbContainers();
+            while(inputValue.length < nbContainer){
+                inputValue.unshift(0);
+            }
+            for(var i = nbContainer - 1; i >= 0; --i){
+                var reverseIndex = (_DotsStore.getNbContainers() - i - 1);
+                if(inputValue[i]){
+                    DotsActions.removeDots(reverseIndex, inputValue[i], undefined, undefined, "dotmove");
                 }
             }
         }
@@ -464,11 +587,22 @@ class VisualPanel extends Component{
                     <span className='blackText'>The code for&nbsp;</span>{this.state.dotsCount}<span className='blackText'>&nbsp;is</span>
                 </div>
             );
-        }else if(this.mode === "addition") {
+        }else if(this.mode === "add") {
             return (
                 <div className="calculus">
-                    {/*{this.startingValue} <i className="fa fa-arrows-h"></i> <span className={((_DotsStore.getDotsNum() !== "?") ? 'ok' : '') + ((_DotsStore.isMachineStable()) ? '' : ' baseIsOver')}>{this.state.dotsNum}</span>*/}
                     {this.startingValue}&nbsp;<i className="fa fa-plus"></i> <input type="text" name="fname" className='inputNumber' maxLength="5" onKeyDown={this.validateNumber} onBlur={this.processAddition}/>
+                </div>
+            );
+        }else if(this.mode === "multiply") {
+            return (
+                <div className="calculus">
+                    {this.startingValue}&nbsp;<i className="fa fa-times"></i> <input type="text" name="fname" className='inputNumber' maxLength="2" onKeyDown={this.validateNumber} onBlur={this.processMultiply}/>
+                </div>
+            );
+        }else if(this.mode === "subtract") {
+            return (
+                <div className="calculus">
+                    {this.startingValue}&nbsp;<i className="fa fa-minus"></i> <input type="text" name="fname" className='inputNumber' maxLength="5" onKeyDown={this.validateNumber} onBlur={this.processSubtract}/>
                 </div>
             );
         }
@@ -482,7 +616,6 @@ class App extends Component {
 
     constructor(props){
         super(props);
-
         this.logo = props.logo;
         this.boum = props.boum;
         this.mode = props.mode;
@@ -496,10 +629,17 @@ class App extends Component {
         }
         if(this.startingValue){
             var nbContainer = _DotsStore.getNbContainers();
-            for(var i = nbContainer; i >= 0; --i){
+            while(this.startingValue.length < nbContainer){
+                this.startingValue.unshift(0);
+            }
+            for(var i = nbContainer - 1; i >= 0; --i){
+                var reverseIndex = (_DotsStore.getNbContainers() - i - 1);
                 if(this.startingValue[i]){
-                    DotsActions.addDots(i, this.startingValue[i], undefined, undefined, "dotmove");
+                    DotsActions.addDots(reverseIndex, this.startingValue[i], undefined, undefined, "dotmove");
                 }
+            }
+            while(this.startingValue.indexOf(0) === 0){
+                this.startingValue.shift();
             }
         }
     }
@@ -522,7 +662,13 @@ class App extends Component {
                             <DotsContainer index="1" />
                             <DotsContainer index="0" />
                         </div>
-
+                        <div className="minusDotsContainers">
+                            <MinusDotsContainer index="4" />
+                            <MinusDotsContainer index="3" />
+                            <MinusDotsContainer index="2" />
+                            <MinusDotsContainer index="1" />
+                            <MinusDotsContainer index="0" />
+                        </div>
                         <div className="dotsFullSizeContainers">
                             <SVGFullSizeContainer className="SVGFullSizeContainer" />
                         </div>

@@ -19,6 +19,8 @@ class DotsStore extends EventEmitter {
             base : 2 ,
             dots : [ [], [], [], [], [] ],
             dotsPositions: [[], [], [], [], []],
+            minusDots : [ [], [], [], [], [] ],
+            minusDotsPositions: [[], [], [], [], []],
             nbContainers : 5,
             containerWidth : 300,
             containerHeight : 400,
@@ -237,7 +239,7 @@ class DotsStore extends EventEmitter {
             for (var i = 0; i < dotsInZone.length; ++i) {
                 let testDotPos = dotsInZone[i];
                 var distance = Math.sqrt((dot.x - testDotPos.x) * (dot.x - testDotPos.x) + (dot.y - testDotPos.y) * (dot.y - testDotPos.y));
-                if (distance < (this.state.dotsRayon * 4)) {
+                if (distance < (this.state.dotsRayon * 2)) {
                     previousPos.push({x:dot.x, y:dot.y, distance:distance});
                     this.checkOverlap(dot, zoneIndex, ++retry, previousPos);
                     return;
@@ -279,6 +281,10 @@ class DotsStore extends EventEmitter {
         return this.state.dots;
     }
 
+    getMinusDotsValue(){
+        return this.state.minusDots;
+    }
+
     getDotsCount(){
         return this.state.dotsCount;
     }
@@ -289,6 +295,10 @@ class DotsStore extends EventEmitter {
 
     getDotsValueByIndex(index){
         return this.state.dots[index].length;
+    }
+
+    getMinusDotsValueByIndex(index){
+        return this.state.minusDots[index].length;
     }
 
     getDotsRayon(){

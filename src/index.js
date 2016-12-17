@@ -9,7 +9,7 @@ import bg from './Netmaths_photo_classe_05_low.jpg';
 import boum from './boum-logo.png';
 
 ReactDOM.render(
-  <App logo={logo} boum={boum} mode='addition' startingValue={[2,3,4,2]} base='10'/>,
+  <App logo={logo} boum={boum} mode='subtract' startingValue={[1,2,3,4]} base='10'/>,
   document.getElementById('boum')
 );
 ReactDOM.render(

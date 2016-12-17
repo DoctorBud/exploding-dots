@@ -333,6 +333,13 @@ body {
 .dotsContainers .nbDots{
 	display: none;
 }
+
+.minusDotsContainers .title,
+.minusDotsContainers button,
+.minusDotsContainers .nbDots{
+	display: none;
+}
+
 .baseNumber{
 	// border: 1px solid #000;
 	color: #CCC;
@@ -367,6 +374,12 @@ body {
 .dotCircle{
 	fill: #34d293;
 	stroke: #000000;
+	stroke-width: 3;
+}
+
+.dotMinusCircle{
+	fill: #ffffff;
+	stroke: #34d293;
 	stroke-width: 3;
 }
 
