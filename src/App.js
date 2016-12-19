@@ -3,6 +3,7 @@ import './App.css';
 import React, { Component } from 'react';
 import DotsActions from './actions/DotsActions.js'
 import DotsStore from './stores/DotsStore.js'
+import {DOTS} from './constants/DotsConstants';
 import AppDispatcher from './dispatchers/AppDispatcher';
 import ReactCSSTransitionGroup from 'react/lib/ReactCSSTransitionGroup';
 import * as d3 from 'd3';
@@ -13,6 +14,7 @@ var getDotsStateByIndex = (index) => {
     return {
         base : _DotsStore.getBase(),
         value : _DotsStore.getDotsValueByIndex(index),
+        negativeValue : _DotsStore.getNegativeDotsValueByIndex(index),
         dots : _DotsStore.getDotsValue()
     }
 };
@@ -23,15 +25,10 @@ var getDotsState = () => {
         base : _DotsStore.getBase(),
         dots : _DotsStore.getDotsValue(),
         dotsCount: _DotsStore.getDotsCount(),
-        dotsNum: _DotsStore.getDotsNum()
-    }
-};
-
-var getMinusDotsStateByIndex = (index) => {
-    return {
-        base : _DotsStore.getBase(),
-        value : _DotsStore.getMinusDotsValueByIndex(index),
-        dots : _DotsStore.getMinusDotsValue()
+        dotsNum: _DotsStore.getDotsNum(),
+        negativeDots: _DotsStore.getNegativeDotsValue(),
+        negativeDotsCount: _DotsStore.getNegativeDotsCount(),
+        negativeDotsNum: _DotsStore.getNegativeDotsNum()
     }
 };
 
@@ -110,7 +107,7 @@ class DotsContainer extends Component{
     }
 
     render() {
-
+        console.log("DotsContainer");
         return (
             <div className="dotsContainer">
                 <div className="title">x<sup>{this.state.index}</sup></div>
@@ -132,6 +129,7 @@ class MinusDotsContainer extends Component{
         this.state = {
             base : 2,
             value : 0,
+            negativeValue : 0,
             index: props.index
         };
 
@@ -139,37 +137,36 @@ class MinusDotsContainer extends Component{
 
     numToDisplay(){
         // Don't display leading zeroes
-        if(this.state.value !== 0 || this.state.index === '0'){
+        if(this.state.negativeValue !== 0 || this.state.index === '0'){
             if(_DotsStore.getBase() !== 12) {
-                return 5;
-                return this.state.value;
+                return this.state.negativeValue;
             }else{
                 if(this.state.value > (this.state.base-1)){
-                    return this.state.value;
+                    return this.state.negativeValue;
                 }else{
-                    switch (this.state.value){
+                    switch (this.state.negativeValue){
                         case 10:
                             return 'A';
                         case 11:
                             return 'B';
                         default:
-                            return this.state.value;
+                            return this.state.negativeValue;
                     }
                 }
             }
         }else {
             let nbContainers = _DotsStore.getNbContainers() - 1;
             for(let i = parseInt(this.state.index, 10) + 1; i <= nbContainers; ++i){
-                if (_DotsStore.getMinusDotsValueByIndex(i) !== 0) {
-                    return this.state.value;
+                if (_DotsStore.getNegativeDotsValueByIndex(i) !== 0) {
+                    return this.state.negativeValue;
                 }
             }
             return '';
         }
     }
 
-    /*_onChange(){
-        this.setState(getMinusDotsStateByIndex(this.state.index));
+    _onChange(){
+        this.setState(getDotsStateByIndex(this.state.index));
     }
 
 
@@ -181,13 +178,13 @@ class MinusDotsContainer extends Component{
     // Remove change listeners from stores
     componentWillUnmount() {
         _DotsStore.removeChangeListener(this._onChange.bind(this));
-    }*/
+    }
 
     render() {
         return (
             <div className="dotsContainer">
-                <span className="nbDots">{this.state.value}</span>
-                 <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{
+                <span className="nbDots">{this.state.negativeValue}</span>
+                 <div className={"baseNumber baseNumber2 " + (this.state.negativeValue > (this.state.base-1) ? 'baseIsOver' : '')}>{
                     this.numToDisplay()
                 }</div>
             </div>);
@@ -208,6 +205,7 @@ class SVGContainer extends React.Component {
         };
 
         this.dots = [];
+        this.negativeDots = [];
     }
 
     // Add change listeners to stores
@@ -237,8 +235,9 @@ class SVGContainer extends React.Component {
 
 
     render() {
-
+        console.log("SVGContainer");
         var statedots = _DotsStore.getDotsValue()[this.props.index];
+        var negativeStatedots = _DotsStore.getNegativeDotsValue()[this.props.index];
 
         var zoneIndex = this.props.index;
         var _this = this;
@@ -249,12 +248,17 @@ class SVGContainer extends React.Component {
             if(_this.dots.length <= _DotsStore.getMaxViewableDots()) _this.dots.push(<SVGDot key={key} index={index} x={dot.x} y={dot.y} style={dot.style} positive={true} zoneIndex={zoneIndex} />);
         });
 
+        this.negativeDots = [];
+        negativeStatedots.forEach(function(dot, index){
+            var key = zoneIndex + "." + dot.x + "." + dot.y;
+            if(_this.negativeDots.length <= _DotsStore.getMaxViewableDots()) _this.negativeDots.push(<SVGNegativeDot key={key} index={index} x={dot.x} y={dot.y} style={dot.style} positive={true} zoneIndex={zoneIndex} />);
+        });
+
         var reverseIndex = (_DotsStore.getNbContainers() - this.props.index - 1);
         var style = (this.state.base <= this.dots.length) ? "dotGroup shaking" : "dotGroup";
         var position = `translate(${reverseIndex*(this.state.width+20)},0)`;
 
         return (
-
             <g transform={position} className="dropZone">
                 <rect ref="zone" className="dotBox" />
 
@@ -265,6 +269,12 @@ class SVGContainer extends React.Component {
                                          transitionEnterTimeout={300} transitionLeaveTimeout={500}>
                     {this.dots}
                 </ReactCSSTransitionGroup>
+
+                <ReactCSSTransitionGroup transitionName="svgDot" component="g" className={style}
+                                         transitionEnterTimeout={300} transitionLeaveTimeout={500}>
+                    {this.negativeDots}
+                </ReactCSSTransitionGroup>
+
             </g>
 
         );
@@ -300,7 +310,7 @@ class SVGFullSizeContainer extends React.Component {
     }
 
     render() {
-
+        console.log("SVGFullSizeContainer");
         return (
             <div className="SVGContainer">
                 <div className="scrollContainer">
@@ -315,6 +325,7 @@ class SVGFullSizeContainer extends React.Component {
                         </g>
                         <g id="stage">
                             <SVGDot key={0} x={0} y={0} positive={true} zoneIndex={0} className="draggedDot" />
+                            {/*<SVGDot key={1} x={0} y={0} positive={true} zoneIndex={0} className="negativeDraggedDot" />*/}
                         </g>
                     </svg>
 
@@ -421,8 +432,117 @@ class SVGDot extends React.Component {
 
 
     render(){
-
+        console.log("SVGDots");
         var style = (this.state.selected ? "dotCircle dotCircleSelected" : "dotCircle");
+        if(this.props.style) style += " " + this.props.style;
+
+        var x = Math.min(Math.max(this.props.x, _DotsStore.getRightLimit()), _DotsStore.getLeftLimit());
+        var y = Math.min(Math.max(this.props.y, _DotsStore.getTopLimit()), _DotsStore.getBottomLimit());
+
+        let circle = (<circle ref="dot" cx={x} cy={y} r={_DotsStore.getDotsRayon()} className={style} />);
+
+        return circle;
+    }
+}
+
+class SVGNegativeDot extends React.Component {
+
+    constructor(props){
+        super();
+
+        this.state = {
+            zoneIndex : props.zoneIndex,
+            selected:false
+        };
+    }
+
+    componentDidMount() {
+        d3.select(this.refs.dot).call(d3.drag()
+            .on("start", this.dragstarted.bind(this))
+            .on("drag", this.dragged.bind(this))
+            .on("end", this.dragended.bind(this)));
+    }
+
+    componentWillUnmount() {
+        d3.drag()
+            .subject(this.refs.dot)
+            .on("start", null)
+            .on("drag", null)
+            .on("end", null);
+    }
+
+    dragstarted(event){
+
+        d3.select("#stage circle").style("display","block");
+
+        var m = d3.mouse(stage);
+        d3.select("#stage circle")
+            .attr("cx", m[0])
+            .attr("cy", m[1]);
+
+        this.setState({
+            selected: true
+        });
+    }
+
+    dragended(event){
+
+        this.setState({
+            selected: false
+        });
+
+        d3.select("#stage circle").style("display","none");
+
+
+        //find new zone for dots
+        var dropzones = d3.selectAll(".dropZone");
+        var currentZoneIndex = -1;
+        var currentZone;
+        dropzones._groups[0].forEach(function(zone, index){
+            var posInZone = d3.mouse(zone);
+            var boundingZone = zone.getBoundingClientRect();
+            if(posInZone[0] > 0 && posInZone[1] > 0 && posInZone[1] < boundingZone.bottom){
+                currentZoneIndex = dropzones._groups[0].length - index - 1;
+                currentZone = zone;
+            }
+        });
+
+        var diffZone = this.state.zoneIndex - currentZoneIndex;
+        var dotsToRemove = 1;
+        if(diffZone < 0){
+            dotsToRemove = Math.pow(_DotsStore.getBase(), diffZone*-1);
+        }
+
+        //Remove the dots
+        var finalNbOfDots = _DotsStore.getNegativeDotsValueByIndex(this.state.zoneIndex) - dotsToRemove;
+        if(finalNbOfDots < 0){
+            alert("Pas assez de points disponibles pour cette opération");
+            return false;
+        }
+        DotsActions.removeNegativeDots(this.state.zoneIndex, dotsToRemove, this.props.index, "no-animation");
+
+        //Add the new dots
+        var newNbOfDots = Math.pow(_DotsStore.getBase(), diffZone);
+        if(currentZone) {
+            var pos = d3.mouse(currentZone);
+            DotsActions.addNegativeDots(currentZoneIndex, newNbOfDots, pos[0], pos[1], "dotmove");
+        }
+    }
+
+    dragged(event){
+        //lint fails because stage is not declared
+        var m = d3.mouse(stage);
+
+        d3.select("#stage circle")
+            .attr("cx", m[0])
+            .attr("cy", m[1]);
+    }
+
+
+
+    render(){
+
+        var style = (this.state.selected ? "dotMinusCircle dotCircleSelected" : "dotMinusCircle");
         if(this.props.style) style += " " + this.props.style;
 
         var x = Math.min(Math.max(this.props.x, _DotsStore.getRightLimit()), _DotsStore.getLeftLimit());
@@ -567,7 +687,8 @@ class VisualPanel extends Component{
             for(var i = nbContainer - 1; i >= 0; --i){
                 var reverseIndex = (_DotsStore.getNbContainers() - i - 1);
                 if(inputValue[i]){
-                    DotsActions.removeDots(reverseIndex, inputValue[i], undefined, undefined, "dotmove");
+                    //DotsActions.removeDots(reverseIndex, inputValue[i], undefined, undefined, "dotmove");
+                    DotsActions.addNegativeDots(reverseIndex, inputValue[i], undefined, undefined, "dotmove");
                 }
             }
         }
@@ -581,25 +702,25 @@ class VisualPanel extends Component{
      );
      }*/
     render() {
-        if(this.mode === "display"){
+        if(this.mode === DOTS.DISPLAY){
             return (
                 <div className="visualPanel">
                     <span className='blackText'>The code for&nbsp;</span>{this.state.dotsCount}<span className='blackText'>&nbsp;is</span>
                 </div>
             );
-        }else if(this.mode === "add") {
+        }else if(this.mode === DOTS.ADD) {
             return (
                 <div className="calculus">
                     {this.startingValue}&nbsp;<i className="fa fa-plus"></i> <input type="text" name="fname" className='inputNumber' maxLength="5" onKeyDown={this.validateNumber} onBlur={this.processAddition}/>
                 </div>
             );
-        }else if(this.mode === "multiply") {
+        }else if(this.mode === DOTS.MULTIPLY) {
             return (
                 <div className="calculus">
                     {this.startingValue}&nbsp;<i className="fa fa-times"></i> <input type="text" name="fname" className='inputNumber' maxLength="2" onKeyDown={this.validateNumber} onBlur={this.processMultiply}/>
                 </div>
             );
-        }else if(this.mode === "subtract") {
+        }else if(this.mode === DOTS.SUBTRACT) {
             return (
                 <div className="calculus">
                     {this.startingValue}&nbsp;<i className="fa fa-minus"></i> <input type="text" name="fname" className='inputNumber' maxLength="5" onKeyDown={this.validateNumber} onBlur={this.processSubtract}/>
@@ -626,6 +747,9 @@ class App extends Component {
     componentDidMount() {
         if(this.base){
             _DotsStore.setBase(this.base);
+        }
+        if(this.mode){
+            _DotsStore.setMode(this.mode);
         }
         if(this.startingValue){
             var nbContainer = _DotsStore.getNbContainers();
@@ -662,7 +786,7 @@ class App extends Component {
                             <DotsContainer index="1" />
                             <DotsContainer index="0" />
                         </div>
-                        <div className="minusDotsContainers">
+                        <div className="negativeDotsContainers">
                             <MinusDotsContainer index="4" />
                             <MinusDotsContainer index="3" />
                             <MinusDotsContainer index="2" />

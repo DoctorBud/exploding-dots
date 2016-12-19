@@ -19,16 +19,18 @@ class DotsStore extends EventEmitter {
             base : 2 ,
             dots : [ [], [], [], [], [] ],
             dotsPositions: [[], [], [], [], []],
-            minusDots : [ [], [], [], [], [] ],
-            minusDotsPositions: [[], [], [], [], []],
+            negativeDots : [ [], [], [], [], [] ],
+            negativeDotsPositions: [[], [], [], [], []],
             nbContainers : 5,
             containerWidth : 300,
             containerHeight : 400,
             dotsRayon : 22,
             dotsCount: 0,
+            negativeDotsCount : 0,
             dotsNum: "?",
             unstable: false,
-            maxViewableDots: 150
+            maxViewableDots: 150,
+            mode: DOTS.DISPLAY
         };
 
         var _this = this;
@@ -54,7 +56,11 @@ class DotsStore extends EventEmitter {
                     break;
 
                 case DOTS.DOT_ADDED:
-                    _this.addDots(action.zoneIndex, action.nbDots, action.newdot);
+                    _this.addDots(action.zoneIndex, action.nbDots, action.newdot, true);
+                    break;
+
+                case DOTS.DOT_NEGATIVE_ADDED:
+                    _this.addDots(action.zoneIndex, action.nbDots, action.newdot, false);
                     break;
 
                 case DOTS.ONE_STEP_STABILIZE:
@@ -75,6 +81,7 @@ class DotsStore extends EventEmitter {
 
             _this.setDotsCount();
             _this.setDotsNum();
+            _this.setNegativeDotsNum();
             _this.emitChange();
 
         });
@@ -90,6 +97,17 @@ class DotsStore extends EventEmitter {
             col++;
         }
         this.state.dotsCount = dotsCount;
+
+
+        // negative
+        dotsCount = 0;
+        col = 0;
+
+        for(let dot of this.state.negativeDots){
+            dotsCount += dot.length * Math.pow(this.state.base,col);
+            col++;
+        }
+        this.state.negativeDotsCount = dotsCount;
     }
 
     setDotsNum(){
@@ -98,8 +116,17 @@ class DotsStore extends EventEmitter {
 
         for(let dot of this.state.dots){
             dotsNum = String(dot.length)+dotsNum;
-
             if(dot.length >= this.state.base && !this.state.unstable) this.state.unstable = true;
+        }
+        this.state.dotsNum = parseInt(dotsNum, 10);
+        if(String(parseInt(this.state.dotsNum, 10))==="NaN" || parseInt(this.state.dotsNum, 10) === 0) this.state.dotsNum = "?";
+    }
+
+    setNegativeDotsNum(){
+        let dotsNum = "";
+        for(let dot of this.state.negativeDots){
+            dotsNum = String(dot.length)+dotsNum;
+            if(!this.state.unstable) this.state.unstable = true;
         }
         this.state.dotsNum = parseInt(dotsNum, 10);
         if(String(parseInt(this.state.dotsNum, 10))==="NaN" || parseInt(this.state.dotsNum, 10) === 0) this.state.dotsNum = "?";
@@ -117,6 +144,10 @@ class DotsStore extends EventEmitter {
 
     setBase(base){
         this.state.base = base;
+    }
+
+    setMode(mode){
+        this.state.mode = mode;
     }
 
     clearDots(){
@@ -194,45 +225,73 @@ class DotsStore extends EventEmitter {
 
     }
 
-    addDots(zoneIndex, nbDots, newdot){
-
-        if(nbDots > 0 && newdot !== undefined){
-            this.state.dots[zoneIndex].push(newdot);
-            this.state.dotsPositions[zoneIndex].push({x: newdot.x, y: newdot.y});
+    removeNegativeDots(zoneIndex, nbDots = 1, dotIndex = -1, dotStyle = ""){
+        if(nbDots > 0 && dotIndex !== -1){
+            this.state.negativeDots[zoneIndex].splice(dotIndex, 1);
+            //removed[0].style = dotStyle;
+            //console.log("removed", removed);
             nbDots--;
+        }
+
+        if(nbDots > 0){
+            //Todo : make those dots explode from dotIndex position
+            this.state.negativeDots[zoneIndex] = this.updateDotsArray(this.state.negativeDots[zoneIndex], this.state.negativeDots[zoneIndex].length-nbDots);
+        }
+    }
+
+    addDots(zoneIndex, nbDots, newDot, isPositive){
+        if(nbDots > 0 && newDot !== undefined){
+            if(isPositive) {
+                this.state.dots[zoneIndex].push(newDot);
+                this.state.dotsPositions[zoneIndex].push({x: newDot.x, y: newDot.y});
+                nbDots--;
+            }else{
+                this.state.negativeDots[zoneIndex].push(newDot);
+                this.state.negativeDotsPositions[zoneIndex].push({x: newDot.x, y: newDot.y});
+                nbDots--;
+            }
         }
 
         if(nbDots > 0){
             //Todo : make those dots spawn from newdot position
-            this.state.dots[zoneIndex] = this.updateDotsArray(this.state.dots[zoneIndex], this.state.dots[zoneIndex].length+nbDots, zoneIndex);
+            if(isPositive) {
+                this.state.dots[zoneIndex] = this.updateDotsArray(this.state.dots[zoneIndex], this.state.dots[zoneIndex].length + nbDots, zoneIndex, isPositive);
+            }else {
+                this.state.negativeDots[zoneIndex] = this.updateDotsArray(this.state.negativeDots[zoneIndex], this.state.negativeDots[zoneIndex].length + nbDots, zoneIndex, isPositive);
+            }
         }
     }
 
 
-    updateDotsArray(dotsArray, nbDots, zoneIndex){
+    updateDotsArray(dotsArray, nbDots, zoneIndex, isPositive = true){
         if(dotsArray.length > nbDots){
             dotsArray.splice(nbDots);
         }else if(dotsArray.length < nbDots){
-            dotsArray = dotsArray.concat(this.generateDots(nbDots - dotsArray.length, zoneIndex));
+            dotsArray = dotsArray.concat(this.generateDots(nbDots - dotsArray.length, zoneIndex, isPositive));
         }
         return dotsArray;
     }
 
 
-    generateDots(nbDots, zoneIndex){
+    generateDots(nbDots, zoneIndex, isPositive){
         var a = [];
         for(var i = 0; i < nbDots; i++){
             a.push({
                 x : Math.random() * this.state.containerWidth,
                 y : Math.random() * this.state.containerHeight
             });
-            this.checkOverlap(a[a.length - 1], zoneIndex);
+            this.checkOverlap(a[a.length - 1], zoneIndex, isPositive);
         }
         return a;
     }
 
-    checkOverlap(dot, zoneIndex, retry = 0, previousPos = []) {
-        let dotsInZone = this.state.dotsPositions[zoneIndex];
+    checkOverlap(dot, zoneIndex, retry = 0, previousPos = [], isPositive) {
+        var dotsInZone;
+        if(isPositive) {
+            dotsInZone = this.state.dotsPositions[zoneIndex];
+        }else{
+            dotsInZone = this.state.negativeDotsPositions[zoneIndex];
+        }
         dot.x = Math.random() * this.state.containerWidth;
         dot.y = Math.random() * this.state.containerHeight;
         if(retry < 100) {
@@ -241,7 +300,7 @@ class DotsStore extends EventEmitter {
                 var distance = Math.sqrt((dot.x - testDotPos.x) * (dot.x - testDotPos.x) + (dot.y - testDotPos.y) * (dot.y - testDotPos.y));
                 if (distance < (this.state.dotsRayon * 2)) {
                     previousPos.push({x:dot.x, y:dot.y, distance:distance});
-                    this.checkOverlap(dot, zoneIndex, ++retry, previousPos);
+                    this.checkOverlap(dot, zoneIndex, ++retry, previousPos, isPositive);
                     return;
                 }
             }
@@ -250,7 +309,11 @@ class DotsStore extends EventEmitter {
             dot.x = previousPos[0].x;
             dot.y = previousPos[0].y;
         }
-        this.state.dotsPositions[zoneIndex].push({x: dot.x, y: dot.y});
+        if(isPositive) {
+            this.state.dotsPositions[zoneIndex].push({x: dot.x, y: dot.y});
+        }else{
+            this.state.negativeDotsPositions[zoneIndex].push({x: dot.x, y: dot.y});
+        }
     }
 
     addChangeListener(cb) {
@@ -281,24 +344,32 @@ class DotsStore extends EventEmitter {
         return this.state.dots;
     }
 
-    getMinusDotsValue(){
-        return this.state.minusDots;
+    getNegativeDotsValue(){
+        return this.state.negativeDots;
     }
 
     getDotsCount(){
         return this.state.dotsCount;
     }
 
+    getNegativeDotsCount(){
+        return this.state.negativeDotsCount;
+    }
+
     getDotsNum(){
         return this.state.dotsNum;
+    }
+
+    getNegativeDotsNum(){
+        return this.state.negativeDotsNum;
     }
 
     getDotsValueByIndex(index){
         return this.state.dots[index].length;
     }
 
-    getMinusDotsValueByIndex(index){
-        return this.state.minusDots[index].length;
+    getNegativeDotsValueByIndex(index){
+        return this.state.negativeDots[index].length;
     }
 
     getDotsRayon(){

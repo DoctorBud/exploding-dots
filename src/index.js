@@ -7,9 +7,10 @@ import './font-awesome.min.css';
 import logo from './scolab.png';
 import bg from './Netmaths_photo_classe_05_low.jpg';
 import boum from './boum-logo.png';
+import {DOTS} from './constants/DotsConstants'
 
 ReactDOM.render(
-  <App logo={logo} boum={boum} mode='subtract' startingValue={[1,2,3,4]} base='10'/>,
+  <App logo={logo} boum={boum} mode={DOTS.SUBTRACT} startingValue={[1,2,3,4]} base='10'/>,
   document.getElementById('boum')
 );
 ReactDOM.render(

@@ -31,6 +31,23 @@ export default class DotsActions {
         AppDispatcher.dispatch(obj);
     }
 
+    static addNegativeDots(_zoneIndex, _nbDots, _x, _y, _style){
+        var obj = {
+            actionType : DOTS.DOT_NEGATIVE_ADDED,
+            nbDots : _nbDots,
+            zoneIndex : _zoneIndex
+        };
+
+        if(_x !== undefined && _y !== undefined){
+            obj.newdot = {
+                x : _x,
+                y : _y,
+                style : _style
+            }
+        }
+        AppDispatcher.dispatch(obj);
+    }
+
 
     static removeDots(_zoneIndex, _nbDots = 1, _dotIndex = -1, _style = ""){
         
