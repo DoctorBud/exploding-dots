@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
 import Home from './Home';
+import Bookpage from './Bookpage';
 import './index.css';
 import './font-awesome.min.css';
 import logo from './scolab.png';
@@ -25,5 +26,6 @@ ReactDOM.render((
   <Router>
     <Route path="/home" component={Home} logo={logo} boum={boum}  />
     <Route path="/app" component={App} logo={logo} boum={boum}  />
+    <Route path="/page1" component={Bookpage}  />
   </Router>
 ), document.getElementById('landing'));
