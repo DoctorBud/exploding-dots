@@ -1,9 +1,9 @@
 import React, { Component, PropTypes } from 'react';
 import { createStore } from 'redux';
+import './style.css';
 import { Provider } from 'react-redux';
 import rootReducer from './reducers/index';
-import DotsContainer from './components/DotsContainer';
-
+import Machine from './components/Machine';
 const store = createStore(rootReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
 
 if (module.hot) {
@@ -26,12 +26,7 @@ class ExplodingDots extends Component {
     return (
       <Provider store={store}>
         <div>
-          TODO
-          <DotsContainer/>
-          <DotsContainer/>
-          <DotsContainer/>
-          <DotsContainer/>
-          <DotsContainer/>
+          <Machine index={0} />
         </div>
       </Provider>
     );
@@ -39,4 +34,3 @@ class ExplodingDots extends Component {
 }
 
 export default ExplodingDots;
-

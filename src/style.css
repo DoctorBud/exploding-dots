@@ -1,0 +1,26 @@
+.dotsComponent{
+    border: solid;
+    border-color: black;
+    color: #FFF;
+    width: 98%;
+    margin: 10px;
+}
+
+.svgPowerZone{
+    border: solid;
+    border-color: black;
+    color: #FFF;
+    height: 98%;
+    margin: 10px;
+}
+
+.powerZoneRect{
+    pointer-events: all;
+    fill: #FFF;
+    height: 95%;
+    stroke: #CCC;
+    stroke-width: 5;
+    width: 18%;
+    x: 1%;
+    y: 1%;
+}
