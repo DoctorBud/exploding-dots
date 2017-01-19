@@ -1,19 +1,42 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
-import Home from './Home';
-import './index.css';
-import './font-awesome.min.css';
-import logo from './scolab.png';
-import bg from './Netmaths_photo_classe_05_low.jpg';
-import boum from './boum-logo.png';
-import {DOTS} from './constants/DotsConstants'
+import React, { Component, PropTypes } from 'react';
+import { createStore } from 'redux';
+import { Provider } from 'react-redux';
+import rootReducer from './reducers/index';
+import DotsContainer from './components/DotsContainer';
 
-ReactDOM.render(
-  <App logo={logo} boum={boum} mode={DOTS.SUBTRACT} startingValue={[1,2,3,4]} base='10'/>,
-  document.getElementById('boum')
-);
-ReactDOM.render(
-  <Home bg={bg} logo={logo} boum={boum} />,
-  document.getElementById('landing')
-);
+const store = createStore(rootReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__());
+
+if (module.hot) {
+  // Enable Webpack hot module replacement for reducers
+  module.hot.accept('./reducers', () => {
+    const nextRootReducer = require('./reducers/index');
+    store.replaceReducer(nextRootReducer);
+  });
+}
+
+class ExplodingDots extends Component {
+
+  static propTypes = {
+    mode: PropTypes.oneOf(['display', 'add', 'subtract', 'multiply', 'divide'])
+  };
+
+  render() {
+    const { ...others } = this.props;
+
+    return (
+      <Provider store={store}>
+        <div>
+          TODO
+          <DotsContainer/>
+          <DotsContainer/>
+          <DotsContainer/>
+          <DotsContainer/>
+          <DotsContainer/>
+        </div>
+      </Provider>
+    );
+  }
+}
+
+export default ExplodingDots;
+
