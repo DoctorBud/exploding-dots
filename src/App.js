@@ -110,10 +110,10 @@ class DotsContainer extends Component{
         console.log("DotsContainer");
         return (
             <div className="dotsContainer">
-                <div className="title">x<sup>{this.state.index}</sup></div>
-                <span className="nbDots">{this.state.value}</span>
-                <button onClick={this.plusOne.bind(this)}>+1</button>
-                <button onClick={this.minusOne.bind(this)}>-1</button>
+                {/*<div className="title">x<sup>{this.state.index}</sup></div>
+                <span className="nbDots">{this.state.value}</span>*/}
+                {/*<button onClick={this.plusOne.bind(this)}>+1</button>
+                <button onClick={this.minusOne.bind(this)}>-1</button>*/}
                 <div className={"baseNumber baseNumber2 " + (this.state.value > (this.state.base-1) ? 'baseIsOver' : '')}>{
                     this.numToDisplay()
                 }</div>
@@ -193,7 +193,6 @@ class MinusDotsContainer extends Component{
 
 
 class SVGContainer extends React.Component {
-
 
     constructor(props){
         super();
@@ -341,7 +340,7 @@ class SVGDot extends React.Component {
         super();
 
         this.state = {
-            zoneIndex : props.zoneIndex,
+            //zoneIndex : props.zoneIndex,
             selected:false
         };
     }
@@ -398,22 +397,23 @@ class SVGDot extends React.Component {
             }
         });
 
-        var diffZone = this.state.zoneIndex - currentZoneIndex;
+        var diffZone = this.props.zoneIndex - currentZoneIndex;
         var dotsToRemove = 1;
         if(diffZone < 0){
             dotsToRemove = Math.pow(_DotsStore.getBase(), diffZone*-1);
         }
 
         //Remove the dots
-        var finalNbOfDots = _DotsStore.getDotsValueByIndex(this.state.zoneIndex) - dotsToRemove;
+        var finalNbOfDots = _DotsStore.getDotsValueByIndex(this.props.zoneIndex) - dotsToRemove;
         if(finalNbOfDots < 0){
             alert("Pas assez de points disponibles pour cette opération");
             return false;
         }
-        DotsActions.removeDots(this.state.zoneIndex, dotsToRemove, this.props.index, "no-animation");
+        DotsActions.removeDots(this.props.zoneIndex, dotsToRemove, this.props.index, "no-animation");
 
         //Add the new dots
         var newNbOfDots = Math.pow(_DotsStore.getBase(), diffZone);
+        console.log("adasdasdasd", _DotsStore.getBase(), diffZone, newNbOfDots);
         if(currentZone) {
             var pos = d3.mouse(currentZone);
             DotsActions.addDots(currentZoneIndex, newNbOfDots, pos[0], pos[1], "dotmove");

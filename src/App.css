@@ -140,7 +140,7 @@
 
 .SVGContainer .scrollContainer
 {
-  overflow-y:scoll;
+  overflow-y:scroll;
   width: 100%;
 }
 
