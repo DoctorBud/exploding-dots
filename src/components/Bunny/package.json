@@ -1,0 +1,6 @@
+{
+  "name": "Bunny",
+  "version": "0.0.1",
+  "private": true,
+  "main": "./Bunny.pixi.jsx"
+}
