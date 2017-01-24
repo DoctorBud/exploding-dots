@@ -1,7 +1,7 @@
-import React, {Component, PropTypes} from 'react';
+  import React, {Component, PropTypes, bindActionCreators} from 'react';
 import {connect} from 'react-redux';
 import * as d3 from 'd3';
-import {addDot, removeDot, addMultipleDots, removeMultipleDots} from '../../actions/index';
+import {addDot, removeDot, addMultipleDots, removeMultipleDots, rezoneDot} from '../../actions/index';
 
 class Machine extends Component {
   static propTypes = {
@@ -17,7 +17,7 @@ class Machine extends Component {
     })
   };
 
-  dotZones = [];
+  //dotZones = [];
   dotsPerZone = [];
   groups = [];
   backgrounds = [];
@@ -33,50 +33,72 @@ class Machine extends Component {
   }
 
   shouldComponentUpdate(props) {
-    console.log('shouldComponentUpdate', props.state.id, props.state.dots);
+    console.log('shouldComponentUpdate', props.state.dots, this.dotsPerZone);
     this.removeDotsFromStateChange();
     this.addDotsFromStateChange();
+    this.checkBase();
+    console.log('ComponentUpdateDone', this.dotsPerZone);
     return false;
   }
 
-  removeDotsFromStateChange() {
-    for (let i = 0; i < this.dotsPerZone.length; i++) {
-      if (this.dotsPerZone[i].length > 0) {
+  removeDotsFromStateChange(){
+    for(let i = 0; i < this.dotsPerZone.length; i++){
+      if(this.dotsPerZone[i].length > 0) {
+        //console.log('Here I', i)
         let j = this.dotsPerZone[i].length;
-        while (j--) {
-          let isPresent = this.props.state.dots.filter((currentDot)=> {
-              return currentDot.zone === this.dotsPerZone[i][j].zone && currentDot.id === this.dotsPerZone[i][j].id
-            }).length >= 1;
-          if (isPresent === false) {
+        while(j--){
+          //console.log('Here J', j, this.dotsPerZone[i][j].zone);
+          let isPresent = false;
+          let k = this.props.state.dots.length;
+          while(k--){
+            //console.log("Here K", this.props.state.dots[k].zone);
+            if(this.props.state.dots[k].zone===i && this.props.state.dots[k].id===this.dotsPerZone[i][j].id === true){
+              isPresent = true;
+              break;
+            }
+          };
+          if(isPresent === false) {
             this.removeCircleFromZone(this.dotsPerZone[i][j]);
             this.dotsPerZone[i].splice(this.dotsPerZone[i].indexOf(this.dotsPerZone[i][j]), 1);
           }
         }
-        ;
       }
     }
   }
 
-  addDotsFromStateChange() {
+  addDotsFromStateChange(){
     this.props.state.dots.forEach((dot) => {
-      if (this.dotsPerZone[dot.zone].length > 0) {
+      if(this.dotsPerZone[dot.zone].length > 0) {
         let identicalDot = false;
         this.dotsPerZone[dot.zone].forEach((existingDot) => {
           if (existingDot.id === dot.id) {
             identicalDot = true;
-
           }
         });
-        if (identicalDot === false) {
+        if(identicalDot === false){
           this.addDotToZone(dot);
         }
-      } else {
+      }else{
         this.addDotToZone(dot)
       }
     });
   }
 
-  addDotToZone(dot, addToDotsPerZone = true) {
+  checkBase() {
+    for(let i = 0; i < this.dotsPerZone.length; i++){
+      if(this.dotsPerZone[i].length > this.props.state.base-1) {
+        this.dotsPerZone[i].forEach((dot) =>{
+          dot.svgCircle.classed('baseIsOver', true);
+        });
+      }else{
+        this.dotsPerZone[i].forEach((dot) =>{
+          dot.svgCircle.classed('baseIsOver', false);
+        });
+      }
+    }
+  }
+
+  addDotToZone(dot, addToDotsPerZone = true){
     let circle = d3.select(this.groups[dot.zone]).append("circle");
     let drag = d3.drag()
       .on("start", this.dragstarted.bind(this, this.groups[dot.zone], circle))
@@ -86,14 +108,15 @@ class Machine extends Component {
     circle.id = dot.id;
     dot.svgCircle = circle;
     circle.attr("cx", dot.x).attr("cy", dot.y).attr("r", 25);
+    circle.classed('dotCircle', true);
     circle.call(drag);
-    if (addToDotsPerZone) {
+    if(addToDotsPerZone) {
       this.dotsPerZone[dot.zone].push(dot);
     }
-    console.log('addDotToZone', this.dotsPerZone);
+    //console.log('addDotToZone', this.dotsPerZone);
   }
 
-  removeCircleFromZone(dot) {
+  removeCircleFromZone(dot){
     let drag = d3.drag()
       .on("start", null)
       .on("drag", null)
@@ -102,39 +125,39 @@ class Machine extends Component {
     dot.svgCircle.remove();
   }
 
-  dragstarted(zone, circle) {
+  dragstarted(zone, circle){
     circle.origin = [circle.attr("cx"), circle.attr("cy")];
     var m = d3.mouse(zone);
     circle.attr("cx", m[0])
       .attr("cy", m[1]);
   }
 
-  dragged(zone, circle) {
+  dragged(zone, circle){
     var m = d3.mouse(zone);
     circle.attr("cx", m[0])
       .attr("cy", m[1]);
   }
 
-  dragended(originalZone, circle) {
-    let dropzones = d3.selectAll('#powerZone' + this.props.state.id);
+  dragended(originalZone, circle){
+    let dropzones = d3.selectAll('#powerZone'+ this.props.state.id);
     let currentZoneIndex = -1;
     let currentZone = null;
     let originalZoneIndex = Number(originalZone.id);
-    dropzones._groups[0].forEach(function (zone, index) {
+    dropzones._groups[0].forEach(function(zone, index){
       let posInZone = d3.mouse(zone);
       let boundingZone = zone.getBBox();
-      if (posInZone[0] > 0
+      if(posInZone[0] > 0
         && posInZone[0] > boundingZone.x
         && posInZone[0] < boundingZone.width
         && posInZone[1] > 0
         && posInZone[1] > boundingZone.y
-        && posInZone[1] < boundingZone.height) {
+        && posInZone[1] < boundingZone.height){
         currentZoneIndex = dropzones._groups[0].length - index - 1;
         currentZone = zone;
       }
     });
 
-    if (currentZoneIndex !== -1 && currentZone !== null) {
+    if(currentZoneIndex !== -1 && currentZone !== null) {
       if (currentZoneIndex !== originalZoneIndex) {
         let originalZoneIndex = Number(originalZone.id);
         let diffZone = originalZoneIndex - currentZoneIndex;
@@ -152,6 +175,21 @@ class Machine extends Component {
           return false;
         }
 
+
+        // Set position of dot linked to circle.
+        let dotMoved = this.dotsPerZone[originalZoneIndex].filter((dot) => {
+          return dot.id === circle.id;
+        })[0];
+
+        var m = d3.mouse(this.groups[currentZoneIndex]);
+        dotMoved.x = m[0];
+        dotMoved.y = m[1];
+
+        // rezone current dot and thus remove it from the amount to be moved
+        this.props.onRezoneDots(this.props.state.id, currentZoneIndex, dotMoved);
+        dotsToRemove--;
+        console.log('dotsToRemove', dotsToRemove);
+
         // remove dots
         this.props.onRemoveDots(this.props.state.id, originalZoneIndex, dotsToRemove);
 
@@ -159,6 +197,7 @@ class Machine extends Component {
         let dotsPos = [];
         let currentBoundingZone = currentZone.getBBox();
         let newNbOfDots = Math.pow(this.props.state.base, diffZone);
+        newNbOfDots--;
         for (let i = 0; i < newNbOfDots; i++) {
           dotsPos.push({
             x: Math.random() * (currentBoundingZone.width - currentBoundingZone.x),
@@ -169,7 +208,7 @@ class Machine extends Component {
           this.props.onAddDots(this.props.state.id, currentZoneIndex, dotsPos);
         }
       }
-    } else {
+    }else{
       this.props.onRemoveDot(this.props.state.id, originalZone, circle.id);
     }
   }
@@ -181,9 +220,9 @@ class Machine extends Component {
 
   componentDidMount() {
     console.log('componentDidMount', this.dotsPerZone);
-    for (let i = 0; i < this.dotsPerZone.length; i++) {
+    for(let i = 0; i < this.dotsPerZone.length; i++){
       d3.select(this.backgrounds[i]).on('click', this.onZoneClick.bind(this, this.groups[i]));
-      if (this.dotsPerZone[i].length > 0) {
+      if(this.dotsPerZone[i].length > 0) {
         this.dotsPerZone[i].forEach((dot) => {
           this.addDotToZone(dot, false);
         })
@@ -191,46 +230,34 @@ class Machine extends Component {
     }
   }
 
-  render() {
+  render(){
     let startingXPos = 0;
-    console.log('render', this.dotsPerZone);
+    //console.log('render', this.dotsPerZone);
     let backgrounds = [];
-    for (let i = this.dotsPerZone.length - 1; i >= 0; i--) {
+    var dotZones = [];
+    for(let i = this.dotsPerZone.length - 1; i >= 0; i--){
       let key = this.props.state.id + ".zone" + i;
-
-      this.dotZones.push(
-        <g key={key} className={"dotZone" + this.props.state.id}
-           transform={'translate(' + (startingXPos + 10) + ',' + 10 + ')'} id={i} ref={(g) => {
-          this.groups[i] = g;
-        }}/>
+      dotZones.push(
+        <g key={key} transform={'translate(' + (startingXPos + 10) + ',' + 10 + ')'} id={i}  ref={(g) => { this.groups[i]=g; }} />
       );
-
       key = this.props.state.id + ".bg" + i;
-
       backgrounds.push(
-        <rect key={key} id={"powerZone" + this.props.state.id} className="powerZoneRect"
-              transform={'translate(' + (startingXPos + 10) + ',' + 10 + ')'} ref={(rect) => {
-          this.backgrounds[i] = rect;
-        }}/>
+        <rect key={key} id={"powerZone" + this.props.state.id} className="powerZoneRect"  transform={'translate(' + (startingXPos + 10) + ',' + 10 + ')'} ref={(rect) => { this.backgrounds[i]=rect; }}/>
       );
-
       startingXPos += 310;
     }
 
     return (
       <div className="dotsComponent">
-        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox='0 0 1600 400' ref={(g) => {
-          this.container = g;
-        }}>
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox='0 0 1600 400' ref={(g) => { this.container=g; }}>
           <g>
             {backgrounds}
-            {this.dotZones}
+            {dotZones}
           </g>
         </svg>
       </div>
     );
   }
-
 }
 
 const getState = (state, id) => {
@@ -263,9 +290,9 @@ const mapDispatchToProps = (dispatch) => ({
   onAddDot: (parentId, zoneId, position) => dispatch(addDot(parentId, zoneId, position)),
   onRemoveDot: (parentId, zoneId, dotId) => dispatch(removeDot(parentId, zoneId, dotId)),
   onAddDots: (parentId, zoneId, dots) => dispatch(addMultipleDots(parentId, zoneId, dots)),
-  onRemoveDots: (parentId, zoneId, dotsAmount) => dispatch(removeMultipleDots(parentId, zoneId, dotsAmount))
+  onRemoveDots: (parentId, zoneId, dotsAmount) => dispatch(removeMultipleDots(parentId, zoneId, dotsAmount)),
+  onRezoneDots: (parentId, zoneId, dot) => dispatch(rezoneDot(parentId, zoneId, dot))
 });
-
 
 export default connect(
   mapStateToProps,
