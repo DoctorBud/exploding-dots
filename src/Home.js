@@ -61,13 +61,13 @@ class Home extends Component {
 
           <h3>Créé en équipe par&nbsp;:</h3>
           <ul className={style.team}>
-            <li><img src="https://avatars3.githubusercontent.com/u/8515774?v=3&s=400" alt="Nicolas Lemay" /></li>
-            <li><img src="https://avatars2.githubusercontent.com/u/12104140?v=3&s=400" alt="André Lacasse" /></li>
-            <li><img src="https://avatars1.githubusercontent.com/u/20970279?v=3&s=400" alt="Pierre-Michel Morais-Godin" /></li>
-            <li><img src="https://avatars.slack-edge.com/2015-02-26/3855703834_fca3d082e76b236bc5a2_192.jpg" alt="Pierre-Yves" /></li>
-            <li><img src="https://media.licdn.com/media/AAEAAQAAAAAAAAXiAAAAJGY0NGI0NDI0LTFhMmItNDFiYy1hMTk4LTdmNGI5YTcwOGRjYw.jpg" alt="Sunil Singh" /></li>
-            <li><img src="https://scontent-lga3-1.xx.fbcdn.net/v/t1.0-9/12821569_10153487057893963_8884376764300611100_n.jpg?oh=ed067e3f14c33d04dc88eeabd0e48b1c&oe=589DD4EB" alt="Simon Lavallée" /></li>
-            <li><img src="https://www.theglobalmathproject.org/wp-content/uploads/2015/09/james.png" alt="James Tanton" /></li>
+            <li><img src="https://i2.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/8515774.png?w=400&ssl=1" alt="Nicolas Lemay" /></li>
+            <li><img src="https://i1.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/icon_andre_1024.png?w=1024&ssl=1" alt="André Lacasse" /></li>
+            <li><img src="https://i1.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/20970279.png?w=400&ssl=1" alt="Pierre-Michel Morais-Godin" /></li>
+            <li><img src="https://i0.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/icon_py_512.png?w=512&ssl=1" alt="Pierre-Yves" /></li>
+            <li><img src="https://i0.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/icon_sunil_1024.png?w=1024&ssl=1" alt="Sunil Singh" /></li>
+            <li><img src="https://i1.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/simon_face.png?w=1024&ssl=1" alt="Simon Lavallée" /></li>
+            <li><img src="https://i0.wp.com/www.netmath.ca/wp-content/uploads/sites/7/2016/07/james.png?w=251&ssl=1" alt="James Tanton" /></li>
           </ul>
 
         </div>
